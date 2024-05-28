@@ -8,7 +8,8 @@ from traceback import format_exc
 from stat import FILE_ATTRIBUTE_HIDDEN # type: ignore
 
 from asyncio import StreamReader, StreamWriter, start_server, gather, open_connection
-from aiohttp import ClientSession, web
+# from aiohttp import ClientSession, web
+from aiohttp import web
 from typing import TYPE_CHECKING, Callable, Coroutine, Dict, Any, List, TypedDict
 
 from logging import getLogger
@@ -21,6 +22,7 @@ from .injector import inject_to_tab, get_gamepadui_tab, close_old_tabs, get_tab
 from .localplatform import ON_WINDOWS
 from . import helpers
 from .localplatform import service_stop, service_start, get_home_path, get_username
+from .network import ProxiedClientSession as ClientSession
 
 class FilePickerObj(TypedDict):
     file: Path

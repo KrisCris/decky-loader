@@ -31,6 +31,7 @@ from .settings import SettingsManager
 from .updater import Updater
 from .utilities import Utilities
 from .customtypes import UserType
+from .network import ProxiedClientSession
 
 
 basicConfig(
@@ -68,6 +69,8 @@ class PluginManager:
         self.plugin_browser = PluginBrowser(plugin_path, self.plugin_loader.plugins, self.plugin_loader, self.settings) 
         self.utilities = Utilities(self)
         self.updater = Updater(self)
+
+        ProxiedClientSession.proxy_url = self.settings.getSetting("proxy_url")
 
         jinja_setup(self.web_app)
 

@@ -4,7 +4,7 @@ import json
 # from pprint import pformat
 
 # Partial imports
-from aiohttp import ClientSession
+# from aiohttp import ClientSession
 from asyncio import sleep
 from hashlib import sha256
 from io import BytesIO
@@ -23,6 +23,7 @@ from .loader import Loader, Plugins
 from .helpers import get_ssl_context, download_remote_binary_to_path
 from .settings import SettingsManager
 from .injector import get_gamepadui_tab
+from .network import ProxiedClientSession as ClientSession
 
 logger = getLogger("Browser")
 

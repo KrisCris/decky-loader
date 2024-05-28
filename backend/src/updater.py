@@ -8,7 +8,9 @@ import shutil
 from typing import List, TYPE_CHECKING, TypedDict
 import zipfile
 
-from aiohttp import ClientSession, web
+# from aiohttp import ClientSession, web
+from aiohttp import web
+from .network import ProxiedClientSession as ClientSession
 
 from . import helpers
 from .injector import get_gamepadui_tab

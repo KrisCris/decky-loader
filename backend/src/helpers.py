@@ -9,10 +9,11 @@ from io import BytesIO
 import certifi
 from aiohttp.web import Request, Response, middleware
 from aiohttp.typedefs import Handler
-from aiohttp import ClientSession
+# from aiohttp import ClientSession
 from . import localplatform
 from .customtypes import UserType
 from logging import getLogger
+from .network import ProxiedClientSession as ClientSession
 
 REMOTE_DEBUGGER_UNIT = "steam-web-debug-portforward.service"
 

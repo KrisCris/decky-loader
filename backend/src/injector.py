@@ -4,10 +4,12 @@ from asyncio import sleep
 from logging import getLogger
 from typing import Any, Callable, List, TypedDict, Dict
 
-from aiohttp import ClientSession
+# from aiohttp import ClientSession
 from aiohttp.client_exceptions import ClientConnectorError, ClientOSError
 from asyncio.exceptions import TimeoutError
 import uuid
+
+from .network import ProxiedClientSession as ClientSession
 
 BASE_ADDRESS = "http://localhost:8080"
 
