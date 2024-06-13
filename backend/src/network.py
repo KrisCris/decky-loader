@@ -5,7 +5,6 @@ from aiohttp import BaseConnector, ClientSession, ClientResponse, TCPConnector
 from aiohttp.typedefs import StrOrURL
 from yarl import URL
 from aiohttp_socks import ProxyConnector, ProxyType # type: ignore
-import asyncio
 from typing import Any, Optional
 
 class ProxiedClientSession(ClientSession):
@@ -13,7 +12,7 @@ class ProxiedClientSession(ClientSession):
     proxy_connector: Optional[ProxyConnector] = None
     default_connector: Optional[BaseConnector] = None
 
-    async def _test_proxy(self) -> Optional[ProxyConnector]:
+    async def _try_get_proxy_connector(self) -> Optional[ProxyConnector]:
         if self.proxy_url:
             connector = ProxyConnector.from_url(self.proxy_url) # type: ignore
             try:
@@ -22,6 +21,7 @@ class ProxiedClientSession(ClientSession):
                         return connector
             except: pass
         return None
+    
     
     def _is_local_traffic(self, url: StrOrURL) -> bool:
         hostname = url.host if isinstance(url, URL) else urlparse(url).hostname
@@ -41,15 +41,13 @@ class ProxiedClientSession(ClientSession):
         *args: Any, 
         **kwargs: Any
     ) -> ClientResponse:
-        if self.proxy_connector and not self._is_local_traffic(str_or_url):
-            self._connector = self.proxy_connector
-        else:
+        if self._is_local_traffic(str_or_url):
             self._connector = self.default_connector
+        else:
+            self._connector = await self._try_get_proxy_connector() or self.default_connector
         return await super()._request(method, str_or_url, *args, **kwargs)         
 
     def __init__(self, *args: Any, **kwargs: Any):
-        loop = asyncio.get_event_loop()
-        self.proxy_connector = loop.run_until_complete(self._test_proxy())
         if 'connector' not in kwargs:
             self.default_connector = TCPConnector()
             kwargs['connector'] = self.default_connector
