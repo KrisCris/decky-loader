@@ -8,6 +8,8 @@ from aiohttp_socks import ProxyConnector, ProxyType # type: ignore
 from typing import Any, Optional
 
 class ProxiedClientSession(ClientSession):
+    bypass_local: bool = True
+    proxy_test_url: str = 'https://api.ipify.org'
     proxy_url: Optional[str] = None
     proxy_connector: Optional[ProxyConnector] = None
     default_connector: Optional[BaseConnector] = None
@@ -17,7 +19,7 @@ class ProxiedClientSession(ClientSession):
             connector = ProxyConnector.from_url(self.proxy_url) # type: ignore
             try:
                 async with ClientSession(connector=connector) as session:
-                    async with session.get("https://www.google.com/") as _:
+                    async with session.get(self.proxy_test_url) as _:
                         return connector
             except: pass
         return None
@@ -41,7 +43,7 @@ class ProxiedClientSession(ClientSession):
         *args: Any, 
         **kwargs: Any
     ) -> ClientResponse:
-        if self._is_local_traffic(str_or_url):
+        if self.bypass_local and self._is_local_traffic(str_or_url):
             self._connector = self.default_connector
         else:
             self._connector = await self._try_get_proxy_connector() or self.default_connector

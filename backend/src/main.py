@@ -71,6 +71,8 @@ class PluginManager:
         self.updater = Updater(self)
 
         ProxiedClientSession.proxy_url = self.settings.getSetting("proxy_url")
+        ProxiedClientSession.bypass_local = self.settings.getSetting("bypass_local", True)
+        ProxiedClientSession.proxy_test_url = self.settings.getSetting("proxy_test_url", "https://api.ipify.org")
 
         jinja_setup(self.web_app)
 
