@@ -49,7 +49,7 @@ jobs:
         API_TOKEN_GITHUB: ${{ secrets.GITHUB_TOKEN }}
       with:
         source_file: 'plugin/decky_plugin.pyi'
-        destination_repo: 'SteamDeckHomebrew/decky-plugin-template'
+        destination_repo: 'KrisCris/decky-plugin-template'
         user_email: '11465594+TrainDoctor@users.noreply.github.com'
         user_name: 'TrainDoctor'
         commit_message: 'Updated template with latest plugin stub changes'

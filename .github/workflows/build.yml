@@ -130,7 +130,7 @@ jobs:
       id: latest_release
       with:
         token: ${{ secrets.GITHUB_TOKEN }}
-        repository: "SteamDeckHomebrew/decky-loader"
+        repository: "KrisCris/decky-loader"
         type: "nodraft"
 
     - name: Prepare tag ⚙️
@@ -209,7 +209,7 @@ jobs:
       id: latest_release
       with:
         token: ${{ secrets.GITHUB_TOKEN }}
-        repository: "SteamDeckHomebrew/decky-loader"
+        repository: "KrisCris/decky-loader"
         type: "nodraft"
 
     - name: Prepare tag ⚙️
