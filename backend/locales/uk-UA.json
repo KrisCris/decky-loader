@@ -87,7 +87,7 @@
         "update_all_many": "Оновити {{count}} плагінів"
     },
     "PluginLoader": {
-        "decky_title": "Decky",
+        "decky_title": "Proxied Decky",
         "decky_update_available": "Доступне оновлення до {{tag_name}}!",
         "error": "Помилка",
         "plugin_load_error": {

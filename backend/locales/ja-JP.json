@@ -106,7 +106,7 @@
             "desc": "{{name}} をアンインストールしてもよろしいですか?",
             "title": "{{name}} をアンインストール"
         },
-        "decky_title": "Decky",
+        "decky_title": "Proxied Decky",
         "decky_update_available": "{{tag_name}} のアップデートが利用可能です!",
         "plugin_update_other": "{{count}} 個のプラグインのアップデートが利用可能です!",
         "plugin_error_uninstall": "{{name}} プラグインを読み込む際に上記のような例外が発生しました。 これは通常、SteamUIの最新バージョンに合ったプラグインのアップデートが必要な場合に発生します。Decky設定のプラグインセクションでアップデートがあるかどうかを確認するか、アンインストールをお試しください。"

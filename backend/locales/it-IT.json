@@ -121,7 +121,7 @@
         "hidden": "Nascosto dal menu di accesso rapido"
     },
     "PluginLoader": {
-        "decky_title": "Decky",
+        "decky_title": "Proxied Decky",
         "decky_update_available": "Disponibile aggiornamento a {{tag_name}}!",
         "error": "Errore",
         "plugin_error_uninstall": "Il plugin {{name}} ha causato un'eccezione che è descritta sopra. Questo tipicamente significa che il plugin deve essere aggiornato per funzionare sulla nuova versione di SteamUI. Controlla se è disponibile un aggiornamento o valutane la rimozione andando nelle impostazioni di Decky nella sezione Plugins.",

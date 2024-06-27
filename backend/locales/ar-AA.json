@@ -87,7 +87,7 @@
         "hidden": "مخفي من قائمة الوصول السريع"
     },
     "PluginLoader": {
-        "decky_title": "Decky",
+        "decky_title": "Proxied Decky",
         "error": "خطا",
         "plugin_uninstall": {
             "button": "إزالة التنصيب",

@@ -88,7 +88,7 @@
             "desc": "¿Estás seguro de que quieres desinstalar {{name}}?",
             "title": "Desinstalar {{name}}"
         },
-        "decky_title": "Decky",
+        "decky_title": "Proxied Decky",
         "plugin_update_one": "¡Actualización disponible para 1 plugin!",
         "plugin_update_many": "¡Actualizaciones disponibles para {{count}} plugins!",
         "plugin_update_other": "¡Actualizaciones disponibles para {{count}} plugins!",

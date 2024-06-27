@@ -95,7 +95,7 @@
         "hidden": "Hızlı erişim menüsünden gizlenmiş"
     },
     "PluginLoader": {
-        "decky_title": "Decky",
+        "decky_title": "Proxied Decky",
         "decky_update_available": "{{tag_name}} güncellemesi mevcut!",
         "error": "Hata",
         "plugin_load_error": {

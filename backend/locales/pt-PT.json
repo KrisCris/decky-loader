@@ -112,7 +112,7 @@
         "hidden": "Oculto do menu de acesso rápido"
     },
     "PluginLoader": {
-        "decky_title": "Decky",
+        "decky_title": "Proxied Decky",
         "error": "Erro",
         "plugin_load_error": {
             "message": "Erro ao carregar o plugin {{name}}",

@@ -78,7 +78,7 @@
         "freeze": "暂停更新"
     },
     "PluginLoader": {
-        "decky_title": "Decky",
+        "decky_title": "Proxied Decky",
         "error": "错误",
         "plugin_error_uninstall": "加载 {{name}} 时引起了上述异常。这通常意味着插件需要更新以适应 SteamUI 的新版本。请检查插件是否有更新，或在 Decky 设置中的插件部分将其移除。",
         "plugin_load_error": {

@@ -78,7 +78,7 @@
         "unfreeze": "允許更新"
     },
     "PluginLoader": {
-        "decky_title": "Decky",
+        "decky_title": "Proxied Decky",
         "error": "錯誤",
         "plugin_error_uninstall": "載入 {{name}} 導致上述異常。這通常意味著該外掛程式需要針對新版本的 SteamUI 進行更新。在 Decky 設定中檢查是否存在更新，或評估刪除此外掛程式。",
         "plugin_load_error": {

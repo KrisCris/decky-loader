@@ -114,7 +114,7 @@
         "unfreeze": "Povolit aktualizace"
     },
     "PluginLoader": {
-        "decky_title": "Decky",
+        "decky_title": "Proxied Decky",
         "decky_update_available": "Aktualizace na {{tag_name}} dostupná!",
         "error": "Chyba",
         "plugin_load_error": {

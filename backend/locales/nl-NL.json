@@ -120,7 +120,7 @@
         "freeze": "Updates bevriezen"
     },
     "PluginLoader": {
-        "decky_title": "Decky",
+        "decky_title": "Proxied Decky",
         "error": "Fout",
         "plugin_load_error": {
             "message": "Fout bij het laden van plug-in {{name}}",
