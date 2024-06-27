@@ -32,6 +32,7 @@ from .updater import Updater
 from .utilities import Utilities
 from .enums import UserType
 from .wsrouter import WSRouter
+from .proxy import ProxiedClientSession
 
 
 basicConfig(
@@ -70,6 +71,10 @@ class PluginManager:
         self.plugin_browser = PluginBrowser(plugin_path, self.plugin_loader.plugins, self.plugin_loader, self.settings) 
         self.utilities = Utilities(self)
         self.updater = Updater(self)
+
+        ProxiedClientSession.proxy_url = self.settings.getSetting("proxy_url")
+        ProxiedClientSession.bypass_local = self.settings.getSetting("bypass_local", True)
+        ProxiedClientSession.proxy_test_url = self.settings.getSetting("proxy_test_url", "https://api.ipify.org")
 
         jinja_setup(self.web_app)
 

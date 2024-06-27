@@ -79,7 +79,7 @@
         "unfreeze": "Updates erlauben"
     },
     "PluginLoader": {
-        "decky_title": "Decky",
+        "decky_title": "Proxied Decky",
         "decky_update_available": "Eine neue Version ({{tag_name}}) ist verfügbar!",
         "error": "Fehler",
         "plugin_load_error": {

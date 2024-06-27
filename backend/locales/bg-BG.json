@@ -114,7 +114,7 @@
         "hidden": "Скрито от менюто за бърз достъп"
     },
     "PluginLoader": {
-        "decky_title": "Decky",
+        "decky_title": "Proxied Decky",
         "error": "Грешка",
         "plugin_load_error": {
             "message": "Грешка при зареждането на добавката {{name}}",

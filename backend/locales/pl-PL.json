@@ -118,7 +118,7 @@
         "freeze": "Zablokuj aktualizacje"
     },
     "PluginLoader": {
-        "decky_title": "Decky",
+        "decky_title": "Proxied Decky",
         "decky_update_available": "Dostępna aktualizacja do {{tag_name}}!",
         "error": "Błąd",
         "plugin_error_uninstall": "Ładowanie {{name}} spowodowało wyjątek, jak pokazano powyżej. Zwykle oznacza to, że plugin wymaga aktualizacji do nowej wersji SteamUI. Sprawdź, czy aktualizacja jest obecna lub rozważ usunięcie go w ustawieniach Decky, w sekcji Pluginy.",

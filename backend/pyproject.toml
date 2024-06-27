@@ -20,6 +20,7 @@ watchdog = "^2.1.7"
 certifi = "*"
 packaging = "^23.2"
 multidict = "^6.0.5"
+aiohttp-socks = "^0.8.4"
 
 [tool.poetry.group.dev.dependencies]
 pyinstaller = "^5.13.0"

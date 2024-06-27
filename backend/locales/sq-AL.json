@@ -49,7 +49,7 @@
         }
     },
     "PluginLoader": {
-        "decky_title": "Decky",
+        "decky_title": "Proxied Decky",
         "plugin_uninstall": {
             "title": "Çinstalo {{name}}",
             "button": "Çinstalo",

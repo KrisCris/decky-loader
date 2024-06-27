@@ -54,7 +54,7 @@
             "desc": "Вы уверены, что хотите удалить {{name}}?",
             "title": "Удалить {{name}}"
         },
-        "decky_title": "Decky",
+        "decky_title": "Proxied Decky",
         "decky_update_available": "Доступно обновление на {{tag_name}}!",
         "error": "Ошибка"
     },

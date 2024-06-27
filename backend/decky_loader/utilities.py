@@ -9,7 +9,8 @@ from traceback import format_exc
 from stat import FILE_ATTRIBUTE_HIDDEN # pyright: ignore [reportAttributeAccessIssue, reportUnknownVariableType]
 
 from asyncio import StreamReader, StreamWriter, start_server, gather, open_connection
-from aiohttp import ClientSession
+# from aiohttp import ClientSession
+from .proxy import ProxiedClientSession as ClientSession
 from aiohttp.web import Request, StreamResponse, Response, json_response, post
 from typing import TYPE_CHECKING, Callable, Coroutine, Dict, Any, List, TypedDict
 

@@ -133,7 +133,7 @@
         "freeze": "Geler les mises à jour"
     },
     "PluginLoader": {
-        "decky_title": "Decky",
+        "decky_title": "Proxied Decky",
         "error": "Erreur",
         "plugin_error_uninstall": "Allez sur {{name}} dans le menu de Decky si vous voulez désinstaller ce plugin.",
         "plugin_load_error": {

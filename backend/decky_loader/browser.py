@@ -4,7 +4,8 @@ import json
 # from pprint import pformat
 
 # Partial imports
-from aiohttp import ClientSession
+# from aiohttp import ClientSession
+from .proxy import ProxiedClientSession as ClientSession
 from asyncio import sleep
 from hashlib import sha256
 from io import BytesIO

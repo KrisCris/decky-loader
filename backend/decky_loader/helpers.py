@@ -10,7 +10,8 @@ import importlib.metadata
 import certifi
 from aiohttp.web import Request, Response, middleware
 from aiohttp.typedefs import Handler
-from aiohttp import ClientSession
+# from aiohttp import ClientSession
+from .proxy import ProxiedClientSession as ClientSession
 from .localplatform import localplatform
 from .enums import UserType
 from logging import getLogger
