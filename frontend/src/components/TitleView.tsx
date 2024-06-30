@@ -31,7 +31,7 @@ const TitleView: FC = () => {
   if (activePlugin === null) {
     return (
       <Focusable style={titleStyles} className={staticClasses.Title}>
-        <div style={{ marginRight: 'auto', flex: 0.9 }}>Decky</div>
+        <div style={{ marginRight: 'auto', flex: 0.9 }}>Proxied Decky</div>
         <DialogButton
           style={{ height: '28px', width: '40px', minWidth: 0, padding: '10px 12px' }}
           onClick={onStoreClick}
