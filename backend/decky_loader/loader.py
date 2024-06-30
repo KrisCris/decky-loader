@@ -8,7 +8,7 @@ from typing import Any, Tuple, Dict, cast
 
 from aiohttp import web
 from os.path import exists
-from watchdog.events import RegexMatchingEventHandler, DirCreatedEvent, DirModifiedEvent, FileCreatedEvent, FileModifiedEvent
+from watchdog.events import RegexMatchingEventHandler, FileSystemEvent
 from watchdog.observers import Observer
 
 from typing import TYPE_CHECKING, List
@@ -37,7 +37,7 @@ class FileChangeHandler(RegexMatchingEventHandler):
         if exists(path.join(self.plugin_path, plugin_dir, "plugin.json")):
             self.queue.put_nowait((path.join(self.plugin_path, plugin_dir, "main.py"), plugin_dir, True))
 
-    def on_created(self, event: DirCreatedEvent | FileCreatedEvent):
+    def on_created(self, event: FileSystemEvent):
         src_path = cast(str, event.src_path) #type: ignore # this is the correct type for this is in later versions of watchdog
         if "__pycache__" in src_path:
             return
@@ -51,7 +51,7 @@ class FileChangeHandler(RegexMatchingEventHandler):
         self.logger.debug(f"file created: {src_path}")
         self.maybe_reload(src_path)
 
-    def on_modified(self, event: DirModifiedEvent | FileModifiedEvent):
+    def on_modified(self, event: FileSystemEvent):
         src_path = cast(str, event.src_path) # type: ignore
         if "__pycache__" in src_path:
             return
@@ -106,12 +106,12 @@ class Loader:
                 self.watcher.disabled = False
 
     async def handle_frontend_assets(self, request: web.Request):
-        file = Path(__file__).parents[1].joinpath("static").joinpath(request.match_info["path"])
+        file = Path(__file__).parent.joinpath("static").joinpath(request.match_info["path"])
         return web.FileResponse(file, headers={"Cache-Control": "no-cache"})
 
     async def handle_frontend_locales(self, request: web.Request):
         req_lang = request.match_info["path"]
-        file = Path(__file__).parents[1].joinpath("locales").joinpath(req_lang)
+        file = Path(__file__).parent.joinpath("locales").joinpath(req_lang)
         if exists(file):
             return web.FileResponse(file, headers={"Cache-Control": "no-cache", "Content-Type": "application/json"})
         else:

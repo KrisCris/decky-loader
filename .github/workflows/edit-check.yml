@@ -4,7 +4,7 @@ on: push
 
 jobs:
   copy-stub:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     steps:
     - name: Checkout
       uses: actions/checkout@8230315d06ad95c617244d2f265d237a1682d445
@@ -14,7 +14,7 @@ jobs:
         token: ${{ secrets.GITHUB_TOKEN }}
 
     - name: Checkout
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
       
     - name: Get changed files
       id: changed-files
