@@ -1,8 +1,8 @@
 from logging import getLogger
 
-from asyncio import AbstractEventLoop, create_task
+from asyncio import AbstractEventLoop
 
-from aiohttp import WSMsgType, WSMessage
+from aiohttp import WSCloseCode, WSMsgType, WSMessage
 from aiohttp.web import Application, WebSocketResponse, Request, Response, get
 
 from enum import IntEnum
@@ -114,10 +114,10 @@ class WSRouter:
                                 # do stuff with the message
                                 if data["route"] in self.routes:
                                     self.logger.debug(f'Started PY call {data["route"]} ID {data["id"]}')
-                                    create_task(self._call_route(data["route"], data["args"], data["id"]))
+                                    self.loop.create_task(self._call_route(data["route"], data["args"], data["id"]))
                                 else:
                                     error = {"error":f'Route {data["route"]} does not exist.', "name": "RouteNotFoundError", "traceback": None}
-                                    create_task(self.write({"type": MessageType.ERROR.value, "id": data["id"], "error": error}))
+                                    self.loop.create_task(self.write({"type": MessageType.ERROR.value, "id": data["id"], "error": error}))
                             case _:
                                 self.logger.error("Unknown message type", data)
         finally:
@@ -133,3 +133,7 @@ class WSRouter:
     async def emit(self, event: str, *args: Any):
         self.logger.debug(f'Firing frontend event {event} with args {args}')
         await self.write({ "type": MessageType.EVENT.value, "event": event, "args": args })
+
+    async def disconnect(self):
+        if self.ws:
+            await self.ws.close(code=WSCloseCode.GOING_AWAY, message=b"Loader is shutting down")

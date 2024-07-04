@@ -1,12 +1,13 @@
 from os import path, environ
-from signal import SIGINT, signal
+from signal import SIG_IGN, SIGINT, SIGTERM, getsignal, signal
 from importlib.util import module_from_spec, spec_from_file_location
 from json import dumps, loads
 from logging import getLogger
 from sys import exit, path as syspath, modules as sysmodules
 from traceback import format_exc
 from asyncio import (get_event_loop, new_event_loop,
-                     set_event_loop, sleep)
+                     set_event_loop)
+from setproctitle import setproctitle, setthreadtitle
 
 from .messages import SocketResponseDict, SocketMessageType
 from ..localplatform.localsocket import LocalSocket
@@ -17,6 +18,8 @@ from .. import helpers
 from typing import List, TypeVar, Any
 
 DataType = TypeVar("DataType")
+
+original_term_handler = getsignal(SIGTERM)
 
 class SandboxedPlugin:
     def __init__(self,
@@ -39,13 +42,19 @@ class SandboxedPlugin:
         self.author = author
         self.api_version = api_version
 
-        self.log = getLogger("plugin")
+        self.log = getLogger("sandboxed_plugin")
 
     def initialize(self, socket: LocalSocket):
         self._socket = socket
 
         try:
-            signal(SIGINT, lambda s, f: exit(0))
+            # Ignore signals meant for parent Process
+            # TODO SURELY there's a better way to do this.
+            signal(SIGINT, SIG_IGN)
+            signal(SIGTERM, SIG_IGN)
+
+            setproctitle(f"{self.name} ({self.file})")
+            setthreadtitle(self.name)
 
             set_event_loop(new_event_loop())
             if self.passive:
@@ -112,10 +121,17 @@ class SandboxedPlugin:
                 else:
                     get_event_loop().create_task(self.Plugin._main(self.Plugin))
             get_event_loop().create_task(socket.setup_server())
-            get_event_loop().run_forever()
         except:
             self.log.error("Failed to start " + self.name + "!\n" + format_exc())
             exit(0)
+        try:
+            get_event_loop().run_forever()
+        except SystemExit:
+            pass
+        except:
+            self.log.error("Loop exited for " + self.name + "!\n" + format_exc())
+        finally:
+            get_event_loop().close()
 
     async def _unload(self):
         try:
@@ -130,7 +146,7 @@ class SandboxedPlugin:
                 self.log.info("Could not find \"_unload\" in " + self.name + "'s main.py" + "\n")
         except:
             self.log.error("Failed to unload " + self.name + "!\n" + format_exc())
-            exit(0)
+            pass
 
     async def _uninstall(self):
         try:
@@ -145,24 +161,26 @@ class SandboxedPlugin:
                 self.log.info("Could not find \"_uninstall\" in " + self.name + "'s main.py" + "\n")
         except:
             self.log.error("Failed to uninstall " + self.name + "!\n" + format_exc())
-            exit(0)
+            pass
 
     async def on_new_message(self, message : str) -> str|None:
         data = loads(message)
 
         if "stop" in data:
-            self.log.info("Calling Loader unload function.")
+            # Incase the loader needs to terminate our process soon
+            signal(SIGTERM, original_term_handler)
+            self.log.info(f"Calling Loader unload function for {self.name}.")
             await self._unload()
 
             if data.get('uninstall'):
                 self.log.info("Calling Loader uninstall function.")
                 await self._uninstall()
 
-            get_event_loop().stop()
-            while get_event_loop().is_running():
-                await sleep(0)
-            get_event_loop().close()
-            raise Exception("Closing message listener")
+            self.log.debug("Stopping event loop")
+
+            loop = get_event_loop()
+            loop.call_soon_threadsafe(loop.stop)
+            exit(0)
 
         d: SocketResponseDict = {"type": SocketMessageType.RESPONSE, "res": None, "success": True, "id": data["id"]}
         try:
