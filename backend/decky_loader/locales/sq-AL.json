@@ -1,27 +1,25 @@
 {
-    "SettingsDeveloperIndex": {
-        "react_devtools": {
-            "ip_label": "IP",
-            "label": "Aktivizo React DevTools"
-        },
-        "third_party_plugins": {
-            "button_zip": "Kërko",
-            "header": "Shtesa të Huaj",
-            "button_install": "Instalo",
-            "label_desc": "URL",
-            "label_url": "Instalo Shtes Nga URL",
-            "label_zip": "Instalo Shtes Nga ZIP"
-        }
-    },
     "BranchSelect": {
         "update_channel": {
-            "stable": "Fiksuar",
-            "label": "Kanali Përditësimet"
+            "label": "Kanali Përditësimet",
+            "stable": "Fiksuar"
         }
     },
     "FilePickerIndex": {
         "folder": {
             "select": "Përdore këtë folder"
+        }
+    },
+    "MultiplePluginsInstallModal": {
+        "title": {
+            "install_one": "",
+            "install_other": "",
+            "mixed_one": "",
+            "mixed_other": "",
+            "reinstall_one": "",
+            "reinstall_other": "",
+            "update_one": "",
+            "update_other": ""
         }
     },
     "PluginCard": {
@@ -48,30 +46,48 @@
             "title": "Përditëso {{artifact}}"
         }
     },
-    "PluginLoader": {
-        "decky_title": "Proxied Decky",
-        "plugin_uninstall": {
-            "title": "Çinstalo {{name}}",
-            "button": "Çinstalo",
-            "desc": "Je i sigurt që don ta çinstalojsh {{name}}?"
-        },
-        "error": "Gabim",
-        "plugin_error_uninstall": "Ju lutem shko nga {{name}} në Decky menu nëse don ta çinstalojsh këtë shtese.",
-        "plugin_update_one": "",
-        "plugin_update_other": ""
-    },
     "PluginListIndex": {
         "no_plugin": "Nuk ka shtesa të instaluar!",
         "uninstall": "Çinstalo",
         "update_all_one": "",
         "update_all_other": ""
     },
-    "SettingsGeneralIndex": {
-        "other": {
-            "header": "Të Tjera"
+    "PluginLoader": {
+        "decky_title": "Decky",
+        "error": "Gabim",
+        "plugin_error_uninstall": "Ju lutem shko nga {{name}} në Decky menu nëse don ta çinstalojsh këtë shtese.",
+        "plugin_uninstall": {
+            "button": "Çinstalo",
+            "desc": "Je i sigurt që don ta çinstalojsh {{name}}?",
+            "title": "Çinstalo {{name}}"
         },
+        "plugin_update_one": "",
+        "plugin_update_other": ""
+    },
+    "PluginView": {
+        "hidden_one": "",
+        "hidden_other": ""
+    },
+    "SettingsDeveloperIndex": {
+        "react_devtools": {
+            "ip_label": "IP",
+            "label": "Aktivizo React DevTools"
+        },
+        "third_party_plugins": {
+            "button_install": "Instalo",
+            "button_zip": "Kërko",
+            "header": "Shtesa të Huaj",
+            "label_desc": "URL",
+            "label_url": "Instalo Shtes Nga URL",
+            "label_zip": "Instalo Shtes Nga ZIP"
+        }
+    },
+    "SettingsGeneralIndex": {
         "about": {
             "decky_version": "Versioni Decky"
+        },
+        "other": {
+            "header": "Të Tjera"
         },
         "updates": {
             "header": "Përmirësimet"
@@ -82,12 +98,6 @@
         "general_title": "Gjeneral"
     },
     "Store": {
-        "store_sort": {
-            "label": "Rendit"
-        },
-        "store_tabs": {
-            "title": "Kërko"
-        },
         "store_contrib": {
             "label": "Kontributi"
         },
@@ -98,8 +108,14 @@
         "store_search": {
             "label": "Kërko"
         },
+        "store_sort": {
+            "label": "Rendit"
+        },
         "store_source": {
             "label": "Kodin Burimor"
+        },
+        "store_tabs": {
+            "title": "Kërko"
         }
     },
     "StoreSelect": {
@@ -111,21 +127,5 @@
         "updates": {
             "cur_version": "Versioni e tanishëme: {{ver}}"
         }
-    },
-    "MultiplePluginsInstallModal": {
-        "title": {
-            "mixed_one": "",
-            "mixed_other": "",
-            "update_one": "",
-            "update_other": "",
-            "reinstall_one": "",
-            "reinstall_other": "",
-            "install_one": "",
-            "install_other": ""
-        }
-    },
-    "PluginView": {
-        "hidden_one": "",
-        "hidden_other": ""
     }
 }

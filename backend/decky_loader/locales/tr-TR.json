@@ -1,15 +1,20 @@
 {
     "BranchSelect": {
         "update_channel": {
+            "label": "Güncelleme Kanalı",
             "prerelease": "Önsürüm",
             "stable": "Stabil",
-            "testing": "Test",
-            "label": "Güncelleme Kanalı"
+            "testing": "Test"
         }
     },
     "DropdownMultiselect": {
         "button": {
             "back": "Geri"
+        }
+    },
+    "FilePickerError": {
+        "errors": {
+            "file_not_found": "Belirtilen yol geçerli değil. Lütfen yolu kontrol edin ve doğru şekilde yeniden girin."
         }
     },
     "FilePickerIndex": {
@@ -48,10 +53,14 @@
             "loading": "Çalışıyor"
         },
         "title": {
+            "install_one": "1 eklenti yükle",
+            "install_other": "{{count}} eklenti yükle",
+            "mixed_one": "",
+            "mixed_other": "",
             "reinstall_one": "1 eklentiyi yeniden yükle",
             "reinstall_other": "{{count}} eklentiyi yeniden yükle",
-            "install_one": "1 eklenti yükle",
-            "install_other": "{{count}} eklenti yükle"
+            "update_one": "",
+            "update_other": ""
         }
     },
     "PluginCard": {
@@ -63,20 +72,20 @@
         "install": {
             "button_idle": "Yükle",
             "button_processing": "Yükleniyor",
-            "title": "Yükle {{artifact}}",
-            "desc": "Yüklemek istediğinizden emin misiniz {{artifact}} {{version}}?"
+            "desc": "Yüklemek istediğinizden emin misiniz {{artifact}} {{version}}?",
+            "title": "Yükle {{artifact}}"
         },
         "reinstall": {
             "button_idle": "Yeniden Yükle",
+            "button_processing": "Yeniden Yükleniyor",
             "desc": "Yeniden yüklemek istediğinizden emin misiniz {{artifact}} {{version}}?",
-            "title": "Yeniden Yükle {{artifact}}",
-            "button_processing": "Yeniden Yükleniyor"
+            "title": "Yeniden Yükle {{artifact}}"
         },
         "update": {
             "button_idle": "Güncelle",
             "button_processing": "Güncelleniyor",
-            "title": "Güncelle {{artifact}}",
-            "desc": "Güncellemek istediğinizden emin misiniz {{artifact}} {{version}}?"
+            "desc": "Güncellemek istediğinizden emin misiniz {{artifact}} {{version}}?",
+            "title": "Güncelle {{artifact}}"
         }
     },
     "PluginListIndex": {
@@ -99,8 +108,8 @@
         "decky_update_available": "{{tag_name}} güncellemesi mevcut!",
         "error": "Hata",
         "plugin_load_error": {
-            "toast": "{{name}} yüklenirken hata oluştu",
-            "message": "{{name}} eklentisi yüklenirken bir hata oluştu"
+            "message": "{{name}} eklentisi yüklenirken bir hata oluştu",
+            "toast": "{{name}} yüklenirken hata oluştu"
         },
         "plugin_uninstall": {
             "button": "Kaldır",
@@ -109,6 +118,10 @@
         },
         "plugin_update_one": "1 eklenti için güncelleme mevcut!",
         "plugin_update_other": "{{count}} eklenti için güncelleme mevcut!"
+    },
+    "PluginView": {
+        "hidden_one": "1 eklenti bu listeden gizlenmiştir",
+        "hidden_other": "{{count}} eklenti bu listeden gizlenmiştir"
     },
     "SettingsDeveloperIndex": {
         "cef_console": {
@@ -179,9 +192,9 @@
             "alph_desc": "Alfabetik (A'dan Z'ye)",
             "date_asce": "Önce En Eski",
             "date_desc": "Önce En Yeni",
+            "downloads_asce": "Önce En Az İndirilen",
             "downloads_desc": "Önce En Çok İndirilen",
-            "title": "Gözat",
-            "downloads_asce": "Önce En Az İndirilen"
+            "title": "Gözat"
         }
     },
     "StoreSelect": {
@@ -193,14 +206,17 @@
             "default": "Varsayılan"
         }
     },
+    "Testing": {
+        "download": "İndir"
+    },
     "TitleView": {
         "decky_store_desc": "Decky Mağazasını Aç",
         "settings_desc": "Decky Ayarlarını Aç"
     },
     "Updater": {
         "decky_updates": "Decky Güncellemeleri",
-        "patch_notes_desc": "Yama Notları",
         "no_patch_notes_desc": "bu sürüm için yama notları mevcut değil",
+        "patch_notes_desc": "Yama Notları",
         "updates": {
             "check_button": "Güncellemeleri Kontrol Et",
             "checking": "Kontrol ediliyor",
@@ -209,17 +225,5 @@
             "label": "Güncellemeler",
             "updating": "Güncelleniyor"
         }
-    },
-    "Testing": {
-        "download": "İndir"
-    },
-    "FilePickerError": {
-        "errors": {
-            "file_not_found": "Belirtilen yol geçerli değil. Lütfen yolu kontrol edin ve doğru şekilde yeniden girin."
-        }
-    },
-    "PluginView": {
-        "hidden_one": "1 eklenti bu listeden gizlenmiştir",
-        "hidden_other": "{{count}} eklenti bu listeden gizlenmiştir"
     }
 }

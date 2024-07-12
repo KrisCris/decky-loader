@@ -9,7 +9,8 @@
     "watch": "rollup -c -w",
     "lint": "prettier -c src",
     "typecheck": "tsc --noEmit",
-    "format": "prettier -c src -w"
+    "format": "prettier -c src -w",
+    "localize": "i18next"
   },
   "devDependencies": {
     "@decky/api": "^1.0.5",
