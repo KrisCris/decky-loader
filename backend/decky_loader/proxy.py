@@ -45,7 +45,9 @@ class ProxiedClientSession(ClientSession):
                 async with ClientSession(connector=connector) as session:
                     async with session.get(self.proxy_test_url) as _:
                         return connector
-            except: pass
+            except Exception as e: 
+                logger.warning(f'Proxy {self.proxy_url} is not working: {e}') 
+                return None
         return None
     
     
@@ -58,6 +60,7 @@ class ProxiedClientSession(ClientSession):
             ip_addr = ipaddress.ip_address(ip)
             return ip_addr.is_private or ip_addr.is_loopback
         except (socket.gaierror, ValueError):
+            logger.warning(f"Failed to resolve hostname: {hostname}")
             return False
 
     async def _request(

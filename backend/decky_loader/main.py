@@ -76,6 +76,8 @@ class PluginManager:
         self.updater = Updater(self)
 
         ProxiedClientSession.proxy_url = self.settings.getSetting("proxy_url")
+        if ProxiedClientSession.proxy_url:
+            logger.info(f"Found proxy settings: {ProxiedClientSession.proxy_url}")
         ProxiedClientSession.bypass_local = self.settings.getSetting("bypass_local", True)
         ProxiedClientSession.proxy_test_url = self.settings.getSetting("proxy_test_url", "https://api.ipify.org")
 
