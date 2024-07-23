@@ -40,7 +40,7 @@ class ProxiedClientSession(ClientSession):
             finally: 
                 sock.close()
 
-            connector = ProxyConnector.from_url(self.proxy_url) # type: ignore
+            connector = ProxyConnector.from_url(self.proxy_url, ssl=False) # type: ignore
             try:
                 async with ClientSession(connector=connector) as session:
                     async with session.get(self.proxy_test_url) as _:
