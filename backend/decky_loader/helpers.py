@@ -53,6 +53,9 @@ async def csrf_middleware(request: Request, handler: Handler):
         return await handler(request)
     return Response(text='Forbidden', status=403)
 
+def create_inject_script(script: str) -> str:
+    return "try{if (window.deckyHasLoaded){setTimeout(() => SteamClient.Browser.RestartJSContext(), 100)}else{window.deckyHasLoaded = true;(async()=>{try{await import('http://localhost:1337/frontend/%s?v=%s')}catch(e){console.error(e)};})();}}catch(e){console.error(e)}" % (script, get_loader_version(), )
+
 # Get the default homebrew path unless a home_path is specified. home_path argument is deprecated
 def get_homebrew_path() -> str:
     return localplatform.get_unprivileged_path()
@@ -68,6 +71,9 @@ def get_loader_version() -> str:
     try:
         # Normalize Python-style version to conform to Decky style
         v = Version(importlib.metadata.version("decky_loader"))
+        if v.major == 0 and v.minor == 0 and v.micro == 0:
+            # We are probably running from source
+            return "dev"
 
         version_str = f'v{v.major}.{v.minor}.{v.micro}'
 
@@ -91,7 +97,11 @@ def get_system_pythonpaths() -> list[str]:
         proc = subprocess.run(["python3" if localplatform.ON_LINUX else "python", "-c", "import sys; print('\\n'.join(x for x in sys.path if x))"],
         # TODO make this less insane
                               capture_output=True, user=localplatform.localplatform._get_user_id() if localplatform.ON_LINUX else None, env={} if localplatform.ON_LINUX else None) # pyright: ignore [reportPrivateUsage]
-        return [x.strip() for x in proc.stdout.decode().strip().split("\n")]
+        
+        proc.check_returncode()
+
+        versions = [x.strip() for x in proc.stdout.decode().strip().split("\n")]
+        return [x for x in versions if x and not x.isspace()]
     except Exception as e:
         logger.warn(f"Failed to execute get_system_pythonpaths(): {str(e)}")
         return []

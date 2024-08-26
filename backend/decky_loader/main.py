@@ -7,14 +7,17 @@ from .localplatform.localplatform import (chmod, chown, service_stop, service_st
                             get_privileged_path, restart_webhelper)
 if hasattr(sys, '_MEIPASS'):
     chmod(sys._MEIPASS, 755) # type: ignore
+    
 # Full imports
+import multiprocessing
+multiprocessing.freeze_support()
 from asyncio import AbstractEventLoop, CancelledError, Task, all_tasks, current_task, gather, new_event_loop, set_event_loop, sleep
 from logging import basicConfig, getLogger
 from os import path
 from traceback import format_exc
-import multiprocessing
-
+from time import time
 import aiohttp_cors # pyright: ignore [reportMissingTypeStubs]
+
 # Partial imports
 from aiohttp import client_exceptions
 from aiohttp.web import Application, Response, Request, get, run_app, static # pyright: ignore [reportUnknownVariableType]
@@ -23,7 +26,7 @@ from setproctitle import getproctitle, setproctitle, setthreadtitle
 
 # local modules
 from .browser import PluginBrowser
-from .helpers import (REMOTE_DEBUGGER_UNIT, csrf_middleware, get_csrf_token, get_loader_version,
+from .helpers import (REMOTE_DEBUGGER_UNIT, create_inject_script, csrf_middleware, get_csrf_token, get_loader_version,
                      mkdir_as_user, get_system_pythonpaths, get_effective_user_id)
                      
 from .injector import get_gamepadui_tab, Tab
@@ -74,6 +77,9 @@ class PluginManager:
         self.plugin_browser = PluginBrowser(plugin_path, self.plugin_loader.plugins, self.plugin_loader, self.settings) 
         self.utilities = Utilities(self)
         self.updater = Updater(self)
+        self.last_webhelper_exit: float = 0
+        self.webhelper_crash_count: int = 0
+        self.inject_fallback: bool = False
 
         ProxiedClientSession.proxy_url = self.settings.getSetting("proxy_url")
         if ProxiedClientSession.proxy_url:
@@ -100,6 +106,21 @@ class PluginManager:
         for route in list(self.web_app.router.routes()):
             self.cors.add(route) # pyright: ignore [reportUnknownMemberType]
         self.web_app.add_routes([static("/static", path.join(path.dirname(__file__), 'static'))])
+
+    async def handle_crash(self):
+        new_time = time()
+        if (new_time - self.last_webhelper_exit < 60):
+            self.webhelper_crash_count += 1
+            logger.warn(f"webhelper crashed within a minute from last crash! crash count: {self.webhelper_crash_count}")
+        else:
+            self.webhelper_crash_count = 0
+        self.last_webhelper_exit = new_time
+
+        # should never happen
+        if (self.webhelper_crash_count > 4):
+            await self.updater.do_shutdown()
+            # Give up
+            exit(0)
 
     async def shutdown(self, _: Application):
         try:
@@ -192,6 +213,7 @@ class PluginManager:
                 # If this is a forceful disconnect the loop will just stop without any failure message. In this case, injector.py will handle this for us so we don't need to close the socket.
                 # This is because of https://github.com/aio-libs/aiohttp/blob/3ee7091b40a1bc58a8d7846e7878a77640e96996/aiohttp/client_ws.py#L321
                 logger.info("CEF has disconnected...")
+                await self.handle_crash()
                 # At this point the loop starts again and we connect to the freshly started Steam client once it is ready.
             except Exception:
                 if not self.reinject:
@@ -199,6 +221,7 @@ class PluginManager:
                 logger.error("Exception while reading page events " + format_exc())
                 await tab.close_websocket()
                 self.js_ctx_tab = None
+                await self.handle_crash()
                 pass
         # while True:
         #     await sleep(5)
@@ -214,8 +237,13 @@ class PluginManager:
                 await tab.close_websocket()
                 self.js_ctx_tab = None
                 await restart_webhelper()
+                await sleep(1) # To give CEF enough time to close down the websocket
                 return # We'll catch the next tab in the main loop
-            await tab.evaluate_js("try{if (window.deckyHasLoaded){setTimeout(() => SteamClient.Browser.RestartJSContext(), 100)}else{window.deckyHasLoaded = true;(async()=>{try{await import('http://localhost:1337/frontend/index.js?v=%s')}catch(e){console.error(e)};})();}}catch(e){console.error(e)}" % (get_loader_version(), ), False, False, False)
+            await tab.evaluate_js(create_inject_script("index.js" if self.webhelper_crash_count < 3 else "fallback.js"), False, False, False)
+            if self.webhelper_crash_count > 2:
+                self.reinject = False
+                await sleep(1)
+                await self.updater.do_shutdown()
         except:
             logger.info("Failed to inject JavaScript into tab\n" + format_exc())
             pass
@@ -230,9 +258,6 @@ def main():
         # Fix windows/flask not recognising that .js means 'application/javascript'
         import mimetypes
         mimetypes.add_type('application/javascript', '.js')
-
-        # Required for multiprocessing support in frozen files
-        multiprocessing.freeze_support()
     else:
         if get_effective_user_id() != 0:
             logger.warning(f"decky is running as an unprivileged user, this is not officially supported and may cause issues")

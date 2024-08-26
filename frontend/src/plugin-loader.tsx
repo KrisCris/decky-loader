@@ -1,17 +1,19 @@
+import { ToastNotification } from '@decky/api';
 import {
   ModalRoot,
+  Navigation,
   PanelSection,
   PanelSectionRow,
   QuickAccessTab,
-  Router,
   findSP,
   quickAccessMenuClasses,
   showModal,
   sleep,
 } from '@decky/ui';
 import { FC, lazy } from 'react';
-import { FaExclamationCircle, FaPlug } from 'react-icons/fa';
+import { FaDownload, FaExclamationCircle, FaPlug } from 'react-icons/fa';
 
+import DeckyIcon from './components/DeckyIcon';
 import { DeckyState, DeckyStateContextProvider, UserInfo, useDeckyState } from './components/DeckyState';
 import { File, FileSelectionType } from './components/modals/filepicker';
 import { deinitFilepickerPatches, initFilepickerPatches } from './components/modals/filepicker/patches';
@@ -20,6 +22,7 @@ import PluginInstallModal from './components/modals/PluginInstallModal';
 import PluginUninstallModal from './components/modals/PluginUninstallModal';
 import NotificationBadge from './components/NotificationBadge';
 import PluginView from './components/PluginView';
+import { useQuickAccessVisible } from './components/QuickAccessVisibleState';
 import WithSuspense from './components/WithSuspense';
 import ErrorBoundaryHook from './errorboundary-hook';
 import { FrozenPluginService } from './frozen-plugins-service';
@@ -27,7 +30,7 @@ import { HiddenPluginsService } from './hidden-plugins-service';
 import Logger from './logger';
 import { NotificationService } from './notification-service';
 import { InstallType, Plugin, PluginLoadType } from './plugin';
-import RouterHook from './router-hook';
+import RouterHook, { UIMode } from './router-hook';
 import { deinitSteamFixes, initSteamFixes } from './steamfixes';
 import { checkForPluginUpdates } from './store';
 import TabsHook from './tabs-hook';
@@ -76,12 +79,13 @@ class PluginLoader extends Logger {
 
   private reloadLock: boolean = false;
   // stores a list of plugin names which requested to be reloaded
-  private pluginReloadQueue: { name: string; version?: string }[] = [];
+  private pluginReloadQueue: { name: string; version?: string; loadType: PluginLoadType }[] = [];
+
+  private loaderUpdateToast?: ToastNotification;
+  private pluginUpdateToast?: ToastNotification;
 
   constructor() {
     super(PluginLoader.name);
-
-    this.errorBoundaryHook.init();
 
     DeckyBackend.addEventListener('loader/notify_updates', this.notifyUpdates.bind(this));
     DeckyBackend.addEventListener('loader/import_plugin', this.importPlugin.bind(this));
@@ -168,16 +172,48 @@ class PluginLoader extends Logger {
       .then(() => this.log('Initialized'));
   }
 
+  private checkForSP(): boolean {
+    try {
+      return !!findSP();
+    } catch (e) {
+      this.warn('Error checking for SP tab', e);
+      return false;
+    }
+  }
+
+  private async runCrashChecker() {
+    const spExists = this.checkForSP();
+    await sleep(5000);
+    if (spExists && !this.checkForSP()) {
+      // SP died after plugin loaded. Give up and let the loader's crash loop detection handle it.
+      this.error('SP died during startup. Restarting webhelper.');
+      await this.restartWebhelper();
+    }
+  }
+
   private getPluginsFromBackend = DeckyBackend.callable<
     [],
     { name: string; version: string; load_type: PluginLoadType }[]
   >('loader/get_plugins');
 
+  private restartWebhelper = DeckyBackend.callable<[], void>('utilities/restart_webhelper');
+
   private async loadPlugins() {
-    // wait for SP window to exist before loading plugins
-    while (!findSP()) {
-      await sleep(100);
+    let registration: any;
+    const uiMode = await new Promise(
+      (r) =>
+        (registration = SteamClient.UI.RegisterForUIModeChanged((mode: UIMode) => {
+          r(mode);
+          registration.unregister();
+        })),
+    );
+    if (uiMode == UIMode.BigPicture) {
+      // wait for SP window to exist before loading plugins
+      while (!findSP()) {
+        await sleep(100);
+      }
     }
+    this.runCrashChecker();
     const plugins = await this.getPluginsFromBackend();
     const pluginLoadPromises = [];
     const loadStart = performance.now();
@@ -210,7 +246,9 @@ class PluginLoader extends Logger {
     if (versionInfo?.remote && versionInfo?.remote?.tag_name != versionInfo?.current) {
       this.deckyState.setHasLoaderUpdate(true);
       if (this.notificationService.shouldNotify('deckyUpdates')) {
-        this.toaster.toast({
+        this.loaderUpdateToast && this.loaderUpdateToast.dismiss();
+        await this.routerHook.waitForUnlock();
+        this.loaderUpdateToast = this.toaster.toast({
           title: <TranslationHelper transClass={TranslationClass.PLUGIN_LOADER} transText="decky_title" />,
           body: (
             <TranslationHelper
@@ -219,7 +257,9 @@ class PluginLoader extends Logger {
               i18nArgs={{ tag_name: versionInfo?.remote?.tag_name }}
             />
           ),
-          onClick: () => Router.Navigate('/decky/settings'),
+          logo: <DeckyIcon />,
+          icon: <FaDownload />,
+          onClick: () => Navigation.Navigate('/decky/settings'),
         });
       }
     }
@@ -238,7 +278,8 @@ class PluginLoader extends Logger {
   public async notifyPluginUpdates() {
     const updates = await this.checkPluginUpdates();
     if (updates?.size > 0 && this.notificationService.shouldNotify('pluginUpdates')) {
-      this.toaster.toast({
+      this.pluginUpdateToast && this.pluginUpdateToast.dismiss();
+      this.pluginUpdateToast = this.toaster.toast({
         title: <TranslationHelper transClass={TranslationClass.PLUGIN_LOADER} transText="decky_title" />,
         body: (
           <TranslationHelper
@@ -247,7 +288,9 @@ class PluginLoader extends Logger {
             i18nArgs={{ count: updates.size }}
           />
         ),
-        onClick: () => Router.Navigate('/decky/settings/plugins'),
+        logo: <DeckyIcon />,
+        icon: <FaDownload />,
+        onClick: () => Navigation.Navigate('/decky/settings/plugins'),
       });
     }
   }
@@ -326,11 +369,11 @@ class PluginLoader extends Logger {
     this.errorBoundaryHook.deinit();
   }
 
-  public unloadPlugin(name: string) {
+  public unloadPlugin(name: string, skipStateUpdate: boolean = false) {
     const plugin = this.plugins.find((plugin) => plugin.name === name);
     plugin?.onDismount?.();
     this.plugins = this.plugins.filter((p) => p !== plugin);
-    this.deckyState.setPlugins(this.plugins);
+    if (!skipStateUpdate) this.deckyState.setPlugins(this.plugins);
   }
 
   public async importPlugin(
@@ -341,7 +384,7 @@ class PluginLoader extends Logger {
   ) {
     if (useQueue && this.reloadLock) {
       this.log('Reload currently in progress, adding to queue', name);
-      this.pluginReloadQueue.push({ name, version: version });
+      this.pluginReloadQueue.push({ name, version: version, loadType });
       return;
     }
 
@@ -349,7 +392,7 @@ class PluginLoader extends Logger {
       if (useQueue) this.reloadLock = true;
       this.log(`Trying to load ${name}`);
 
-      this.unloadPlugin(name);
+      this.unloadPlugin(name, true);
       const startTime = performance.now();
       await this.importReactPlugin(name, version, loadType);
       const endTime = performance.now();
@@ -363,7 +406,7 @@ class PluginLoader extends Logger {
         this.reloadLock = false;
         const nextPlugin = this.pluginReloadQueue.shift();
         if (nextPlugin) {
-          this.importPlugin(nextPlugin.name, nextPlugin.version);
+          this.importPlugin(nextPlugin.name, nextPlugin.version, loadType);
         }
       }
     }
@@ -374,6 +417,7 @@ class PluginLoader extends Logger {
     version?: string,
     loadType: PluginLoadType = PluginLoadType.ESMODULE_V1,
   ) {
+    let spExists = this.checkForSP();
     try {
       switch (loadType) {
         case PluginLoadType.ESMODULE_V1:
@@ -384,6 +428,7 @@ class PluginLoader extends Logger {
             ...plugin,
             name: name,
             version: version,
+            loadType,
           });
           break;
 
@@ -403,6 +448,7 @@ class PluginLoader extends Logger {
               ...plugin,
               name: name,
               version: version,
+              loadType,
             });
           } else throw new Error(`${name} frontend_bundle not OK`);
           break;
@@ -421,7 +467,7 @@ class PluginLoader extends Logger {
           </PanelSectionRow>
           <PanelSectionRow>
             <pre style={{ overflowX: 'scroll' }}>
-              <code>{e instanceof Error ? e.stack : JSON.stringify(e)}</code>
+              <code>{e instanceof Error ? '' + e.stack : JSON.stringify(e)}</code>
             </pre>
           </PanelSectionRow>
           <PanelSectionRow>
@@ -440,6 +486,7 @@ class PluginLoader extends Logger {
         version: version,
         content: <TheError />,
         icon: <FaExclamationCircle />,
+        loadType,
       });
       this.toaster.toast({
         title: (
@@ -452,6 +499,12 @@ class PluginLoader extends Logger {
         body: '' + e,
         icon: <FaExclamationCircle />,
       });
+    }
+
+    if (spExists && !this.checkForSP()) {
+      // SP died after plugin loaded. Give up and let the loader's crash loop detection handle it.
+      this.error('SP died after loading plugin. Restarting webhelper.');
+      await this.restartWebhelper();
     }
   }
 
@@ -527,18 +580,22 @@ class PluginLoader extends Logger {
 
   // Same syntax as fetch but only supports the url-based syntax and an object for headers since it's the most common usage pattern
   fetchNoCors(input: string, init?: DeckyRequestInit | undefined): Promise<Response> {
-    const headers: { [name: string]: string } = {
-      ...(init?.headers as { [name: string]: string }),
-      'X-Decky-Auth': deckyAuthToken,
-      'X-Decky-Fetch-URL': input,
+    const { headers: initHeaders = {}, ...restOfInit } = init || {};
+    const getPrefixedHeaders = () => {
+      let prefixedInitHeaders: { [name: string]: any } = {};
+      for (const [key, value] of Object.entries(initHeaders)) {
+        prefixedInitHeaders[`X-Decky-Header-${key}`] = value;
+      }
+      return prefixedInitHeaders;
     };
+    const headers: { [name: string]: string } = getPrefixedHeaders();
 
     if (init?.excludedHeaders) {
       headers['X-Decky-Fetch-Excluded-Headers'] = init.excludedHeaders.join(', ');
     }
 
-    return fetch('http://127.0.0.1:1337/fetch', {
-      ...init,
+    return fetch(this.getExternalResourceURL(input), {
+      ...restOfInit,
       credentials: 'include',
       headers,
     });
@@ -554,7 +611,6 @@ class PluginLoader extends Logger {
       method = request.method;
       delete req.method;
     }
-    // this is terrible but a. we're going to redo this entire method anyway and b. it was already terrible
     try {
       const ret = await DeckyBackend.call<
         [method: string, url: string, extra_opts?: any],
@@ -567,11 +623,11 @@ class PluginLoader extends Logger {
   }
 
   initPluginBackendAPI() {
-    // Things will break *very* badly if plugin code touches this outside of @decky/backend, so lets make that clear.
+    // Things will break *very* badly if plugin code touches this outside of @decky/api, so lets make that clear.
     window.__DECKY_SECRET_INTERNALS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED_deckyLoaderAPIInit = {
       connect: (version: number, pluginName: string) => {
-        if (version < 1 || version > 1) {
-          throw new Error(`Plugin ${pluginName} requested unsupported backend api version ${version}.`);
+        if (version < 1 || version > 2) {
+          console.warn(`Plugin ${pluginName} requested unsupported api version ${version}.`);
         }
 
         const eventListeners: listenerMap = new Map();
@@ -611,7 +667,13 @@ class PluginLoader extends Logger {
           removeCssFromTab: DeckyBackend.callable<[tab: string, cssId: string]>('utilities/remove_css_from_tab'),
           routerHook: this.routerHook,
           toaster: this.toaster,
-        };
+          _version: 1,
+        } as any;
+
+        if (version >= 2) {
+          backendAPI._version = 2;
+          backendAPI.useQuickAccessVisible = useQuickAccessVisible;
+        }
 
         this.debug(`${pluginName} connected to loader API.`);
         return backendAPI;

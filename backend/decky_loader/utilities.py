@@ -21,9 +21,8 @@ from .browser import PluginInstallRequest, PluginInstallType
 if TYPE_CHECKING:
     from .main import PluginManager
 from .injector import inject_to_tab, get_gamepadui_tab, close_old_tabs, get_tab
-from .localplatform.localplatform import ON_WINDOWS
 from . import helpers
-from .localplatform.localplatform import service_stop, service_start, get_home_path, get_username
+from .localplatform.localplatform import ON_WINDOWS, service_stop, service_start, get_home_path, get_username, get_use_cef_close_workaround, close_cef_socket, restart_webhelper
 
 class FilePickerObj(TypedDict):
     file: Path
@@ -79,6 +78,8 @@ class Utilities:
             context.ws.add_route("utilities/get_tab_id", self.get_tab_id)
             context.ws.add_route("utilities/get_user_info", self.get_user_info)
             context.ws.add_route("utilities/http_request", self.http_request_legacy)
+            context.ws.add_route("utilities/restart_webhelper", self.restart_webhelper)
+            context.ws.add_route("utilities/close_cef_socket", self.close_cef_socket)
             context.ws.add_route("utilities/_call_legacy_utility", self._call_legacy_utility)
 
             context.web_app.add_routes([
@@ -142,10 +143,10 @@ class Utilities:
 
     # Loosely based on https://gist.github.com/mosquito/4dbfacd51e751827cda7ec9761273e95#file-proxy-py
     async def http_request(self, req: Request) -> StreamResponse:
-        if req.headers.get('X-Decky-Auth', '') != helpers.get_csrf_token() and req.query.get('auth', '') != helpers.get_csrf_token():
+        if req.query['auth'] != helpers.get_csrf_token():
             return Response(text='Forbidden', status=403)
 
-        url = req.headers["X-Decky-Fetch-URL"] if "X-Decky-Fetch-URL" in req.headers else unquote(req.query.get('fetch_url', ''))
+        url = unquote(req.query['fetch_url'])
         self.logger.info(f"Preparing {req.method} request to {url}")
 
         headers = dict(req.headers)
@@ -181,7 +182,11 @@ class Utilities:
 
         body = await req.read() # TODO can this also be streamed?
 
-        async with ClientSession() as web:
+        # We disable auto-decompress so that the body is completely forwarded to the
+        # JS engine for it to do the decompression. Otherwise we need need to clear
+        # the Content-Encoding header in the response headers, however that would
+        # defeat the point of this proxy.
+        async with ClientSession(auto_decompress=False) as web:
             async with web.request(req.method, url, headers=headers, data=body, ssl=helpers.get_ssl_context()) as web_res:
                 res = StreamResponse(headers=web_res.headers, status=web_res.status)
                 if web_res.headers.get('Transfer-Encoding', '').lower() == 'chunked':
@@ -191,14 +196,12 @@ class Utilities:
                 self.logger.debug(f"Starting stream for {url}")
                 async for data in web_res.content.iter_any():
                     await res.write(data)
-                    if data:
-                        await res.drain()
                 self.logger.debug(f"Finished stream for {url}")
         return res
 
-    async def http_request_legacy(self, method: str, url: str, extra_opts: Any = {}):
+    async def http_request_legacy(self, method: str, url: str, extra_opts: Any = {}, timeout: int | None = None):
         async with ClientSession() as web:
-            res = await web.request(method, url, ssl=helpers.get_ssl_context(), **extra_opts)
+            res = await web.request(method, url, ssl=helpers.get_ssl_context(), timeout=timeout, **extra_opts)
             text = await res.text()
         return {
             "status": res.status,
@@ -285,6 +288,13 @@ class Utilities:
     async def stop_ssh(self):
         await service_stop(helpers.SSHD_UNIT)
         return True
+
+    async def close_cef_socket(self):
+        if get_use_cef_close_workaround():
+            await close_cef_socket()
+
+    async def restart_webhelper(self):
+        await restart_webhelper()
 
     async def filepicker_ls(self, 
                             path: str | None = None, 
